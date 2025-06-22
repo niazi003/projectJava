@@ -5,7 +5,7 @@ import java.awt.event.*;
 import javax.swing.*;
 import java.util.ArrayList;
 
-public class calculator {
+public class toDo {
 
     private JFrame frame;
     private JTextField taskField;
@@ -17,7 +17,7 @@ public class calculator {
     public static void main(String[] args) {
         EventQueue.invokeLater(() -> {
             try {
-                calculator window = new calculator();
+                toDo window = new toDo();
                 window.frame.setVisible(true);
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(null, "Something went wrong: " + e.getMessage());
@@ -25,7 +25,7 @@ public class calculator {
         });
     }
 
-    public calculator() {
+    public toDo() {
         initialize();
     }
 
