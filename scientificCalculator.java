@@ -1,4 +1,4 @@
-package projectCalculator;
+package projectSCD;
 
 import java.util.Scanner;
 
