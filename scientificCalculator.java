@@ -24,13 +24,28 @@ public class scientificCalculator {
         return a / b;
     }
 
+<<<<<<< dawar
+    public static double squareRoot(double a) {
+        return Math.sqrt(a);
+    }
+
+    public static double power(double a, double b) {
+        return Math.pow(a, b);
+    }
+
+=======
+>>>>>>> main
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         int choice;
         double num1, num2;
 
         do {
+<<<<<<< dawar
+            System.out.println("\n--- Basic Scientific Calculator ---");
+=======
             System.out.println("\n--- Scientific Calculator ---");
+>>>>>>> main
             System.out.println("1. Add\n2. Subtract\n3. Multiply\n4. Divide");
             System.out.println("5. Square Root\n6. Power");
             System.out.println("0. Exit");
@@ -62,7 +77,21 @@ public class scientificCalculator {
                     num2 = scanner.nextDouble();
                     System.out.println("Result: " + divide(num1, num2));
                     break;
+<<<<<<< dawar
+                case 5:
+                    System.out.print("Enter a number: ");
+                    num1 = scanner.nextDouble();
+                    System.out.println("Square Root: " + squareRoot(num1));
+                    break;
+                case 6:
+                    System.out.print("Enter base and exponent: ");
+                    num1 = scanner.nextDouble();
+                    num2 = scanner.nextDouble();
+                    System.out.println("Result: " + power(num1, num2));
+                    break;
+=======
                 
+>>>>>>> main
                 case 0:
                     System.out.println("Exiting calculator. Goodbye!");
                     break;
@@ -74,4 +103,8 @@ public class scientificCalculator {
 
         scanner.close();
     }
+<<<<<<< dawar
 }
+=======
+}
+>>>>>>> main
