@@ -4,7 +4,6 @@ import java.awt.*;
 import javax.swing.*;
 import java.text.*;
 import java.util.*;
-import java.util.List;
 
 public class toDo {
 
@@ -13,7 +12,7 @@ public class toDo {
     private JTextField dateField;
     private DefaultListModel<String> taskListModel;
     private JList<String> taskList;
-    private List<Task> tasks;
+    private ArrayList<Task> tasks;
     private JComboBox<String> sortSelector;
 
     private static final SimpleDateFormat inputDateFormat = new SimpleDateFormat("dd MMMM yyyy", Locale.ENGLISH);
@@ -35,6 +34,7 @@ public class toDo {
 
     private void initialize() {
         tasks = new ArrayList<>();
+
         frame = new JFrame("Task Reminder App");
         frame.setBounds(100, 100, 600, 430);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -84,9 +84,10 @@ public class toDo {
         sortSelector.setBounds(450, 280, 110, 30);
         frame.add(sortSelector);
 
-        sortSelector.addActionListener(e -> updateTaskList());
+        sortSelector.addActionListener(e -> {
+            updateTaskList();
+        });
 
-        // Add Task
         addButton.addActionListener(e -> {
             String taskTitle = taskField.getText().trim();
             String dateStr = dateField.getText().trim();
@@ -97,6 +98,7 @@ public class toDo {
             }
 
             Date dueDate;
+
             try {
                 String currentYear = String.valueOf(Calendar.getInstance().get(Calendar.YEAR));
                 String fullDateStr = dateStr + " " + currentYear;
@@ -107,6 +109,7 @@ public class toDo {
             }
 
             Task newTask = new Task(taskTitle, dueDate);
+
             if (tasks.contains(newTask)) {
                 JOptionPane.showMessageDialog(frame, "Task already exists.");
                 return;
@@ -114,15 +117,17 @@ public class toDo {
 
             tasks.add(newTask);
             updateTaskList();
+
             taskField.setText("");
             dateField.setText("");
         });
 
-        // Mark as Done
         completeButton.addActionListener(e -> {
             int index = taskList.getSelectedIndex();
+
             if (index >= 0) {
                 Task selected = getDisplayedTasks().get(index);
+
                 if (!selected.title.startsWith("[Done] ")) {
                     selected.title = "[Done] " + selected.title;
                     updateTaskList();
@@ -134,9 +139,9 @@ public class toDo {
             }
         });
 
-        // Delete Task
         deleteButton.addActionListener(e -> {
             int index = taskList.getSelectedIndex();
+
             if (index >= 0) {
                 Task selected = getDisplayedTasks().get(index);
                 tasks.remove(selected);
@@ -146,14 +151,12 @@ public class toDo {
             }
         });
 
-        // Replay / Exit
         replayButton.addActionListener(e -> {
-            int result = JOptionPane.showConfirmDialog(frame,
-                    "Do you want to restart or exit?", "Replay/Exit",
-                    JOptionPane.YES_NO_OPTION);
+            int result = JOptionPane.showConfirmDialog(frame, "Do you want to restart or exit?", "Replay/Exit", JOptionPane.YES_NO_OPTION);
+
             if (result == JOptionPane.YES_OPTION) {
-                taskListModel.clear();
                 tasks.clear();
+                taskListModel.clear();
                 taskField.setText("");
                 dateField.setText("");
             } else {
@@ -162,17 +165,23 @@ public class toDo {
         });
     }
 
-    // Sorting logic
     private List<Task> getDisplayedTasks() {
         List<Task> displayList = new ArrayList<>(tasks);
         String selectedSort = (String) sortSelector.getSelectedItem();
 
-        if ("Due Date Left".equals(selectedSort)) {
+        if (selectedSort.equals("Due Date Left")) {
             displayList.sort((t1, t2) -> {
                 boolean t1Done = t1.title.startsWith("[Done] ");
                 boolean t2Done = t2.title.startsWith("[Done] ");
-                if (t1Done && !t2Done) return 1;
-                if (!t1Done && t2Done) return -1;
+
+                if (t1Done && !t2Done) {
+                    return 1;
+                }
+
+                if (!t1Done && t2Done) {
+                    return -1;
+                }
+
                 return t1.dueDate.compareTo(t2.dueDate);
             });
         }
@@ -182,12 +191,12 @@ public class toDo {
 
     private void updateTaskList() {
         taskListModel.clear();
+
         for (Task task : getDisplayedTasks()) {
             taskListModel.addElement(task.toString());
         }
     }
 
-    // Inner class
     private static class Task {
         String title;
         Date dueDate;
@@ -202,14 +211,28 @@ public class toDo {
         public String toString() {
             long diff = dueDate.getTime() - new Date().getTime();
             long daysLeft = diff / (1000L * 60 * 60 * 24);
-            String rem = daysLeft >= 0 ? daysLeft + " days left" : "Overdue";
+
+            String rem;
+
+            if (daysLeft >= 0) {
+                rem = daysLeft + " days left";
+            } else {
+                rem = "Overdue";
+            }
+
             return title + " (Due: " + format.format(dueDate) + ", " + rem + ")";
         }
 
         @Override
         public boolean equals(Object obj) {
-            if (this == obj) return true;
-            if (!(obj instanceof Task)) return false;
+            if (this == obj) {
+                return true;
+            }
+
+            if (!(obj instanceof Task)) {
+                return false;
+            }
+
             Task o = (Task) obj;
             return title.equalsIgnoreCase(o.title) && dueDate.equals(o.dueDate);
         }
