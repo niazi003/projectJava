@@ -17,7 +17,7 @@ public class scientificCalculator {
     }
 
     public static double divide(double a, double b) {
-        if (b == 0) {
+        if (b == 0 || a == 0) {
             System.out.println("Error: Cannot divide by zero.");
             return 0;
         }
