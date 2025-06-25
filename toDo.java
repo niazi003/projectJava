@@ -1,30 +1,31 @@
 package projectSCD;
 
-import java.awt.*;
 import javax.swing.*;
+import java.awt.*;
 import java.text.*;
 import java.util.*;
-import java.util.List;
 
 public class toDo {
 
     private JFrame frame;
-    private JTextField taskField;
-    private JTextField dateField;
-    private DefaultListModel<String> taskListModel;
+    private JTextField taskInput;
+    private JTextField dateInput;
+    private DefaultListModel<String> listModel;
     private JList<String> taskList;
-    private List<Task> tasks;
-    private JComboBox<String> sortSelector;
+    private JComboBox<String> sortBox;
+    private ArrayList<Task> allTasks;
 
-    private static final SimpleDateFormat inputDateFormat = new SimpleDateFormat("dd MMMM yyyy", Locale.ENGLISH);
+    private static final SimpleDateFormat formatter = new SimpleDateFormat("dd MMMM yyyy", Locale.ENGLISH);
 
     public static void main(String[] args) {
-        EventQueue.invokeLater(() -> {
-            try {
-                toDo window = new toDo();
-                window.frame.setVisible(true);
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(null, "Something went wrong: " + e.getMessage());
+        EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                try {
+                    toDo app = new toDo();
+                    app.frame.setVisible(true);
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(null, "Error: " + e.getMessage());
+                }
             }
         });
     }
@@ -34,184 +35,191 @@ public class toDo {
     }
 
     private void initialize() {
-        tasks = new ArrayList<>();
+        allTasks = new ArrayList<>();
+
         frame = new JFrame("Task Reminder App");
-        frame.setBounds(100, 100, 600, 400);
+        frame.setBounds(100, 100, 600, 430);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.getContentPane().setBackground(Color.WHITE);
         frame.setLayout(null);
+        frame.getContentPane().setBackground(Color.WHITE);
 
-        JLabel title = new JLabel("Add New Task");
-        title.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        title.setBounds(30, 20, 200, 30);
-        frame.add(title);
+        JLabel heading = new JLabel("Add Task and Due Date");
+        heading.setFont(new Font("Arial", Font.BOLD, 18));
+        heading.setBounds(30, 20, 300, 25);
+        frame.add(heading);
 
-        taskField = new JTextField();
-        taskField.setBounds(30, 60, 200, 30);
-        taskField.setToolTipText("Enter task title");
-        frame.add(taskField);
+        taskInput = new JTextField();
+        taskInput.setBounds(30, 60, 200, 30);
+        taskInput.setToolTipText("Enter task name");
+        frame.add(taskInput);
 
-        dateField = new JTextField();
-        dateField.setBounds(240, 60, 120, 30);
-        dateField.setToolTipText("Enter due date (e.g., 24 June)");
-        frame.add(dateField);
+        dateInput = new JTextField();
+        dateInput.setBounds(240, 60, 120, 30);
+        dateInput.setToolTipText("Enter date like: 24 June");
+        frame.add(dateInput);
 
         JButton addButton = new JButton("Add Task");
-        addButton.setBounds(380, 60, 100, 30);
+        addButton.setBounds(380, 60, 120, 30);
         frame.add(addButton);
 
-        taskListModel = new DefaultListModel<>();
-        taskList = new JList<>(taskListModel);
-        JScrollPane scrollPane = new JScrollPane(taskList);
-        scrollPane.setBounds(30, 110, 450, 160);
-        frame.add(scrollPane);
+        listModel = new DefaultListModel<>();
+        taskList = new JList<>(listModel);
+        JScrollPane scroll = new JScrollPane(taskList);
+        scroll.setBounds(30, 110, 530, 150);
+        scroll.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        frame.add(scroll);
 
-        JButton completeButton = new JButton("Mark as Done");
-        completeButton.setBounds(30, 280, 130, 30);
-        frame.add(completeButton);
+        JButton doneButton = new JButton("Mark Done");
+        doneButton.setBounds(30, 280, 130, 30);
+        frame.add(doneButton);
 
         JButton deleteButton = new JButton("Delete Task");
-        deleteButton.setBounds(170, 280, 120, 30);
+        deleteButton.setBounds(170, 280, 130, 30);
         frame.add(deleteButton);
 
-        JButton replayButton = new JButton("Replay/Exit");
-        replayButton.setBounds(300, 280, 130, 30);
-        frame.add(replayButton);
+        JButton resetButton = new JButton("Replay / Exit");
+        resetButton.setBounds(310, 280, 130, 30);
+        frame.add(resetButton);
 
-        String[] sortOptions = { "Order Added", "Due Date Left" };
-        sortSelector = new JComboBox<>(sortOptions);
-        sortSelector.setBounds(440, 280, 120, 30);
-        frame.add(sortSelector);
-        sortSelector.addActionListener(e -> updateTaskList());
+        sortBox = new JComboBox<>(new String[] { "Order Added", "Due Date Left" });
+        sortBox.setBounds(450, 280, 110, 30);
+        frame.add(sortBox);
 
-        // Add Task Action
-        addButton.addActionListener(e -> {
-            String taskTitle = taskField.getText().trim();
-            String dateStr = dateField.getText().trim();
-
-            if (taskTitle.isEmpty() || dateStr.isEmpty()) {
-                JOptionPane.showMessageDialog(frame, "Please fill both task and date.");
-                return;
-            }
-
-            Date dueDate;
-            try {
-                String currentYear = String.valueOf(Calendar.getInstance().get(Calendar.YEAR));
-                String fullDateStr = dateStr + " " + currentYear;
-                dueDate = inputDateFormat.parse(fullDateStr);
-            } catch (ParseException ex) {
-                JOptionPane.showMessageDialog(frame, "Invalid date format. Use format like '24 June'.");
-                return;
-            }
-
-            Task newTask = new Task(taskTitle, dueDate);
-            if (tasks.contains(newTask)) {
-                JOptionPane.showMessageDialog(frame, "Task already exists.");
-                return;
-            }
-
-            tasks.add(newTask);
-            updateTaskList();
-
-            taskField.setText("");
-            dateField.setText("");
-        });
-
-        // Complete Task Action
-        completeButton.addActionListener(e -> {
-            int index = taskList.getSelectedIndex();
-            if (index >= 0) {
-                Task selectedTask = getDisplayedTasks().get(index);
-                if (!selectedTask.title.startsWith("[Done] ")) {
-                    selectedTask.title = "[Done] " + selectedTask.title;
-                    updateTaskList();
-                }
-            } else {
-                JOptionPane.showMessageDialog(frame, "Select a task to mark as done.");
-            }
-        });
-
-        // Delete Task Action
-        deleteButton.addActionListener(e -> {
-            int index = taskList.getSelectedIndex();
-            if (index >= 0) {
-                Task selectedTask = getDisplayedTasks().get(index);
-                tasks.remove(selectedTask);
-                updateTaskList();
-            } else {
-                JOptionPane.showMessageDialog(frame, "Select a task to delete.");
-            }
-        });
-
-        // Replay / Exit
-        replayButton.addActionListener(e -> {
-            int result = JOptionPane.showConfirmDialog(frame,
-                    "Do you want to restart or exit?", "Replay/Exit",
-                    JOptionPane.YES_NO_OPTION);
-            if (result == JOptionPane.YES_OPTION) {
-                taskListModel.clear();
-                tasks.clear();
-                taskField.setText("");
-                dateField.setText("");
-            } else {
-                frame.dispose();
-            }
-        });
+        addButton.addActionListener(e -> addTask());
+        doneButton.addActionListener(e -> markTaskDone());
+        deleteButton.addActionListener(e -> deleteTask());
+        resetButton.addActionListener(e -> replayOrExit());
+        sortBox.addActionListener(e -> updateTaskList());
     }
 
-    // Sort and display tasks
-    private List<Task> getDisplayedTasks() {
-        List<Task> displayList = new ArrayList<>(tasks);
-        String selectedSort = (String) sortSelector.getSelectedItem();
+    private void addTask() {
+        String title = taskInput.getText().trim();
+        String dateStr = dateInput.getText().trim();
 
-        if ("Due Date Left".equals(selectedSort)) {
-            displayList.sort((t1, t2) -> {
-                boolean t1Done = t1.title.startsWith("[Done] ");
-                boolean t2Done = t2.title.startsWith("[Done] ");
-                if (t1Done && !t2Done) return 1;
-                if (!t1Done && t2Done) return -1;
-                return t1.dueDate.compareTo(t2.dueDate);
-            });
+        if (title.isEmpty() || dateStr.isEmpty()) {
+            JOptionPane.showMessageDialog(frame, "Please fill both fields.");
+            return;
         }
 
-        return displayList;
+        Date dueDate;
+        try {
+            String year = String.valueOf(Calendar.getInstance().get(Calendar.YEAR));
+            String fullDate = dateStr + " " + year;
+            dueDate = formatter.parse(fullDate);
+        } catch (ParseException e) {
+            JOptionPane.showMessageDialog(frame, "Date should be like: 24 June");
+            return;
+        }
+
+        Task newTask = new Task(title, dueDate);
+
+        if (allTasks.contains(newTask)) {
+            JOptionPane.showMessageDialog(frame, "Task already exists.");
+        } else {
+            allTasks.add(newTask);
+            updateTaskList();
+            taskInput.setText("");
+            dateInput.setText("");
+        }
+    }
+
+    private void markTaskDone() {
+        int index = taskList.getSelectedIndex();
+
+        if (index >= 0) {
+            Task selected = getSortedTasks().get(index);
+
+            if (!selected.title.startsWith("[Done] ")) {
+                selected.title = "[Done] " + selected.title;
+                updateTaskList();
+            } else {
+                JOptionPane.showMessageDialog(frame, "Task already marked as done.");
+            }
+        } else {
+            JOptionPane.showMessageDialog(frame, "Please select a task.");
+        }
+    }
+
+    private void deleteTask() {
+        int index = taskList.getSelectedIndex();
+
+        if (index >= 0) {
+            Task selected = getSortedTasks().get(index);
+            allTasks.remove(selected);
+            updateTaskList();
+        } else {
+            JOptionPane.showMessageDialog(frame, "Please select a task.");
+        }
+    }
+
+    private void replayOrExit() {
+        int choice = JOptionPane.showConfirmDialog(frame, "Restart the app?", "Replay / Exit", JOptionPane.YES_NO_OPTION);
+
+        if (choice == JOptionPane.YES_OPTION) {
+            taskInput.setText("");
+            dateInput.setText("");
+            listModel.clear();
+            allTasks.clear();
+        } else {
+            frame.dispose();
+        }
     }
 
     private void updateTaskList() {
-        taskListModel.clear();
-        for (Task task : getDisplayedTasks()) {
-            taskListModel.addElement(task.toString());
+        listModel.clear();
+        for (Task t : getSortedTasks()) {
+            listModel.addElement(t.toString());
         }
     }
 
-    // Inner class for Task
+    private ArrayList<Task> getSortedTasks() {
+        ArrayList<Task> sorted = new ArrayList<>(allTasks);
+        String sortType = (String) sortBox.getSelectedItem();
+
+        if (sortType.equals("Due Date Left")) {
+            sorted.sort((a, b) -> {
+                boolean aDone = a.title.startsWith("[Done] ");
+                boolean bDone = b.title.startsWith("[Done] ");
+                if (aDone && !bDone) {
+                    return 1;
+                } else if (!aDone && bDone) {
+                    return -1;
+                } else {
+                    return a.dueDate.compareTo(b.dueDate);
+                }
+            });
+        }
+
+        return sorted;
+    }
+
     private static class Task {
         String title;
         Date dueDate;
-        private static final SimpleDateFormat format = new SimpleDateFormat("dd MMMM yyyy", Locale.ENGLISH);
 
         Task(String title, Date dueDate) {
             this.title = title;
             this.dueDate = dueDate;
         }
 
-        @Override
         public String toString() {
             long diff = dueDate.getTime() - new Date().getTime();
-            long daysLeft = diff / (1000L * 60 * 60 * 24);
-            String rem = daysLeft >= 0 ? daysLeft + " days left" : "Overdue";
-            return title + " (Due: " + format.format(dueDate) + ", " + rem + ")";
+            long days = diff / (1000L * 60 * 60 * 24);
+            String status = (days >= 0) ? days + " days left" : "Overdue";
+            return title + " (Due: " + formatter.format(dueDate) + ", " + status + ")";
         }
 
-        @Override
         public boolean equals(Object obj) {
-            if (this == obj) return true;
-            if (!(obj instanceof Task)) return false;
-            Task o = (Task) obj;
-            return title.equalsIgnoreCase(o.title) && dueDate.equals(o.dueDate);
+            if (this == obj) {
+                return true;
+            }
+            if (!(obj instanceof Task)) {
+                return false;
+            }
+            Task t = (Task) obj;
+            return title.equalsIgnoreCase(t.title) && dueDate.equals(t.dueDate);
         }
 
-        @Override
         public int hashCode() {
             return Objects.hash(title.toLowerCase(), dueDate);
         }
