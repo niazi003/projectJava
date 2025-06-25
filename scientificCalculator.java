@@ -24,6 +24,14 @@ public class scientificCalculator {
         return a / b;
     }
 
+    public static double squareRoot(double a) {
+        return Math.sqrt(a);
+    }
+
+    public static double power(double a, double b) {
+        return Math.pow(a, b);
+    }
+
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         int choice;
@@ -62,7 +70,17 @@ public class scientificCalculator {
                     num2 = scanner.nextDouble();
                     System.out.println("Result: " + divide(num1, num2));
                     break;
-                
+                case 5:
+                    System.out.print("Enter a number: ");
+                    num1 = scanner.nextDouble();
+                    System.out.println("Square Root: " + squareRoot(num1));
+                    break;
+                case 6:
+                    System.out.print("Enter base and exponent: ");
+                    num1 = scanner.nextDouble();
+                    num2 = scanner.nextDouble();
+                    System.out.println("Result: " + power(num1, num2));
+                    break;
                 case 0:
                     System.out.println("Exiting calculator. Goodbye!");
                     break;
